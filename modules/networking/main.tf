@@ -1,28 +1,20 @@
 
 #==============================================================
-# MÓDULO NETWORKING
+# MODULO NETWORKING
 #==============================================================
-  #       -1. VPC (virtual private cloud)
-  #       -2. IGW (Internet Gateway)
-  #       -3.1. Subredes Publicas (se crean 2 una en cada AZ)
-  #       -3.2. Subredes Privadas APP (se crean 2 una en cada AZ)
-  #       -3.3. Subredes Privadas DATA (base de datos) (se crean 2 una en cada AZ)
-  #       -4. NAT Gateway
-  #       -5.1. TABLA DE RUTAS PÚBLICA (Para las subredes de ALB y NAT Gateway)
-  #       -5.2. TABLA DE RUTAS PRIVADA - APLICACIONES
-  #       -5.3. TABLA DE RUTAS PRIVADA - DATOS (Para RDS)
+
   data "aws_availability_zones" "available" {
     state = "available"
   }
 
-  # Define las AZs a usar (las dos primeras)
   locals {
     azs     = slice(data.aws_availability_zones.available.names, 0, var.az_count)
     newbits = 8
   }
 
-  # 1. EL CONTENEDOR PRINCIPAL: VPC
+  # PRINCIPAL: VPC
   # ------------------------------
+  
   resource "aws_vpc" "main_vpc" {
     cidr_block           = var.vpc_cidr  # Rango total de IPs para toda nuestra red (65,536 direcciones).
     enable_dns_support   = true          # Permite resoluciones DNS dentro de la VPC.
@@ -33,7 +25,7 @@
     }
   }
 
-  # 2. PUERTA DE ENLACE A INTERNET (IGW)
+  # PUERTA DE ENLACE A INTERNET (IGW)
   # -----------------------------------
   resource "aws_internet_gateway" "igw" {
     vpc_id         = aws_vpc.main_vpc.id # Asocia este IGW a la VPC que acabamos de crear.
@@ -44,13 +36,14 @@
   }
 
   #===================================================================
-  # 3. SUBREDES 2 CAPAS APP Y DATOS
+  # SUBREDES 2 CAPAS APP Y DATOS
   #================================================================
   #===================================================================
-  # 3.1.CAPA PÚBLICA (Web/Data/ALB) - Necesita ser accesible desde Internet
+  # CAPA PÚBLICA (Web/Data/ALB)
   #     Cálculo y Creación de Subredes Públicas
   #     CIDRs: 10.0.1.0/24 y 10.0.2.0/24
   #===================================================================
+  
   resource "aws_subnet" "public" {
     count                   = length(local.azs)
     vpc_id                  = aws_vpc.main_vpc.id
@@ -65,10 +58,11 @@
   }
 
   # ========================================================================
-  # 3.2.CAPA PRIVADA - APLICACIONES - BASE DEDATOS - No accesible desde Internet.
+  # CAPA PRIVADA - APLICACIONES - BASE DEDATOS
   #     Cálculo y Creación de Subredes Privadas de Aplicación (EC2/ASG)
   #     CIDRs: Bloques 10, 11, ...
   #=========================================================================
+  
   resource "aws_subnet" "private" {
     count             = length(local.azs)
     vpc_id            = aws_vpc.main_vpc.id
@@ -82,7 +76,7 @@
   }
 
   #===================================================================================
-  # 4. CONFIGURACIÓN DEL NAT GATEWAY (para tráfico de salida de la Capa Privada)
+  # CONFIGURACIÓN DEL NAT GATEWAY (para tráfico de salida de la Capa Privada)
   #===================================================================================
 
   # Necesita una IP elástica (EIP)
@@ -106,10 +100,10 @@
   }
 
   #==============================================================================
-  # 5. TABLAS DE RUTAS Y ASOCIACIONES
+  # TABLAS DE RUTAS Y ASOCIACIONES
   #==============================================================================
 
-  # 5.1. TABLA DE RUTAS PÚBLICA (Para las subredes de ALB y NAT Gateway)
+  #TABLA DE RUTAS PÚBLICA (Para las subredes de ALB y NAT Gateway)
   resource "aws_route_table" "public" {
     vpc_id = aws_vpc.main_vpc.id
     
@@ -134,7 +128,7 @@
 
   #================================================================================
 
-  # 5.2. TABLA DE RUTAS PRIVADA - APLICACIONES (Para EC2/ASG)
+  # TABLA DE RUTAS PRIVADA - APLICACIONES (Para EC2/ASG)
   resource "aws_route_table" "private" {
     count  = length(local.azs)
     vpc_id = aws_vpc.main_vpc.id
@@ -159,4 +153,3 @@
     route_table_id = aws_route_table.private[count.index].id
   }
 
-  #=============================================================================

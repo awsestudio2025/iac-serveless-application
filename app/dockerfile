@@ -1,0 +1,19 @@
+# Usamos una imagen base ligera de Python para entornos de produccion
+FROM python:3.11-slim
+
+# Establecemos el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiamos los archivos de requerimientos e instalamos dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiamos el codigo de la aplicacion
+COPY app.py .
+
+# Exponemos el puerto que usará el ALB para el Health Check y tráfico
+EXPOSE 8080
+
+# Comando para correr la aplicacion usando Gunicorn
+# 'app:app' significa correr la funcion 'app' dentro del modulo 'app.py'
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]

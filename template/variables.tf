@@ -114,3 +114,8 @@
     description = "Variable fargate puierto"
     type        = number
   }
+  
+  variable "email_for_notifications" {
+    description = "Variable fargate puierto"
+    type        = string
+  }

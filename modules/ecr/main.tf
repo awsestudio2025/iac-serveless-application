@@ -7,8 +7,8 @@
     resource "aws_ecr_repository" "app_repository" {
         name                 = "${var.project_name}/${var.environment}/app-backend"
         image_tag_mutability = "MUTABLE"
+        force_delete         = true
 
-        # Cifrado en reposo para la imagen (predeterminado de ECR)
         encryption_configuration {
             encryption_type = "AES256"
         }
