@@ -1,0 +1,9 @@
+Archivos de Terraform
+.terraform/
+*.tfvars
+*.tfstate
+*.tfstate.backup
+crash.log
+
+Archivos de depuración y logs
+*.log
