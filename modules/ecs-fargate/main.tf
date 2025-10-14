@@ -1,85 +1,84 @@
 #==============================================================
-# MÓDULO ECS FARGATE: Cluster, Task Definition y Service
+# MÓDULO ECS FARGATE
 #==============================================================
 
-data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}
+    data "aws_region" "current" {}
+    data "aws_caller_identity" "current" {}
 
-# 1. CloudWatch Log Group (Faltante)
+# CloudWatch Log Group 
 # ----------------------------------------------------
-# Crea el grupo de logs de destino para los logs del contenedor.
-resource "aws_cloudwatch_log_group" "app_logs" {
-  name              = "/ecs/${var.project_name}-${var.environment}-logs"
-  retention_in_days = 90
-  
-  tags = {
-    Environment = var.environment
-  }
-}
+    resource "aws_cloudwatch_log_group" "app_logs" {
+        name              = "/ecs/${var.project_name}-${var.environment}-logs"
+        retention_in_days = 90
+        
+        tags = {
+            Environment = var.environment
+        }
+    }
 
-# 2. ECS Cluster
+# ECS Cluster
 # ----------------------------------------------------
-resource "aws_ecs_cluster" "app_cluster" {
-  name = "${var.project_name}-${var.environment}-cluster"
-  
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
+    resource "aws_ecs_cluster" "app_cluster" {
+        name = "${var.project_name}-${var.environment}-cluster"
+        
+        setting {
+            name  = "containerInsights"
+            value = "enabled"
+        }
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-ecs-Cluster"
-  }
-}
+        tags = {
+            Name = "${var.project_name}-${var.environment}-ecs-Cluster"
+        }
+    }
 
-# 3. Configuración de Balanceo de Carga (ALB/Target Group)
+# Configuración de Balanceo de Carga (ALB/Target Group)
 # ----------------------------------------------------
-resource "aws_lb_target_group" "app_tg" {
-  name        = "${var.project_name}-${var.environment}-app-tg"
-  port        = var.app_port 
-  protocol    = "HTTP"
-  vpc_id      = var.aws_vpc_id # Mantengo la variable tal como usted la definió
-  target_type = "ip" 
+    resource "aws_lb_target_group" "app_tg" {
+        name        = "${var.project_name}-${var.environment}-app-tg"
+        port        = var.app_port 
+        protocol    = "HTTP"
+        vpc_id      = var.aws_vpc_id # Mantengo la variable tal como usted la definió
+        target_type = "ip" 
 
-  health_check {
-    path                = "/health" 
-    protocol            = "HTTP"
-    matcher             = "200"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-  
-  tags = {
-    Name = "${var.project_name}-${var.environment}-App-TG"
-  }
-}
+        health_check {
+            path                = "/health" 
+            protocol            = "HTTP"
+            matcher             = "200"
+            interval            = 30
+            timeout             = 5
+            healthy_threshold   = 2
+            unhealthy_threshold = 2
+        }
+    
+        tags = {
+            Name = "${var.project_name}-${var.environment}-App-TG"
+        }
+    }
 
-resource "aws_lb" "app_alb" {
-  name               = "${var.project_name}-${var.environment}-app-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.alb_sg_id]
-  subnets            = var.subnet_public_ids
+    resource "aws_lb" "app_alb" {
+        name               = "${var.project_name}-${var.environment}-app-alb"
+        internal           = false
+        load_balancer_type = "application"
+        security_groups    = [var.alb_sg_id]
+        subnets            = var.subnet_public_ids
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-ALB"
-  }
-}
+        tags = {
+            Name = "${var.project_name}-${var.environment}-ALB"
+        }
+    }
 
-resource "aws_lb_listener" "http_listener" {
-  load_balancer_arn = aws_lb.app_alb.arn
-  port              = "80"
-  protocol          = "HTTP"
+    resource "aws_lb_listener" "http_listener" {
+        load_balancer_arn = aws_lb.app_alb.arn
+        port              = "80"
+        protocol          = "HTTP"
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app_tg.arn
-  }
-}
+        default_action {
+            type             = "forward"
+            target_group_arn = aws_lb_target_group.app_tg.arn
+        }
+    }
 
-# 4. ECS DEFINICION DE TAREA
+# ECS DEFINICION DE TAREA
 # ----------------------------------------------------
 resource "aws_ecs_task_definition" "app_task" {
   family                   = "${var.project_name}-${var.environment}-app-task"
@@ -88,7 +87,7 @@ resource "aws_ecs_task_definition" "app_task" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   
-  # ✅ ROLES DE IAM CONECTADOS
+  #ROLES DE IAM CONECTADOS
   execution_role_arn = var.ecs_execution_role_arn
   task_role_arn      = var.ecs_task_role_arn
 
@@ -109,24 +108,21 @@ resource "aws_ecs_task_definition" "app_task" {
       ],
       
       environment = [
-        # Variables de entorno estándar
+
         { name = "App_entorno", value = var.environment }
-        # NOTE: El secreto ya no va aquí.
+
       ],
 
-      # ✅ CORRECCIÓN CLAVE: Usar el bloque 'secrets' para Secrets Manager.
-      # Fargate utiliza el 'execution_role_arn' para inyectar el valor del secreto.
       secrets = [
         {
-          name      = "DB_CREDENTIALS", # Este será el nombre de la variable dentro del contenedor
-          valueFrom = var.secret_arn    # El ARN del secreto, que Fargate usará para resolver el valor
+          name      = "DB_CREDENTIALS", 
+          valueFrom = var.secret_arn 
         }
       ],
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          # Referencia al grupo de logs creado arriba
           "awslogs-group"   = aws_cloudwatch_log_group.app_logs.name,
           "awslogs-region"  = data.aws_region.current.id,
           "awslogs-stream-prefix" = "ecs"
@@ -140,7 +136,7 @@ resource "aws_ecs_task_definition" "app_task" {
   }
 }
 
-# 5. ECS SERVICE
+# Servicio ECS
 # ----------------------------------------------------
 resource "aws_ecs_service" "app_service" {
   name            = "${var.project_name}-${var.environment}-app-service"
@@ -166,10 +162,8 @@ resource "aws_ecs_service" "app_service" {
   }
 }
 
-# 6. Auto Escalado (App Auto Scaling)
+# Auto Escalado
 # ----------------------------------------------------
-
-# Definir el objetivo escalable (el servicio ECS)
 resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = 3
   min_capacity       = 1 
@@ -177,8 +171,6 @@ resource "aws_appautoscaling_target" "ecs_target" {
   service_namespace  = "ecs"
   scalable_dimension = "ecs:service:DesiredCount"
 }
-
-# Política de escalado basada en la utilización de CPU (Target Tracking)
 resource "aws_appautoscaling_policy" "ecs_cpu_scaling_policy" {
   name               = "${var.project_name}-${var.environment}-cpu-scaling"
   service_namespace  = "ecs"

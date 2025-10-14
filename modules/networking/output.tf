@@ -8,7 +8,7 @@ output "vpc_id" {
 }
 
 # ============================================
-#    OUTPUTS SUBNETS
+#   OUTPUTS SUBNETS
 # ============================================
 
 # Subnets publica ALB - App (EC2/ASG) - NAT

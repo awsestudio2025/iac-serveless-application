@@ -1,4 +1,3 @@
-
 #==============================================================
 # MODULO NETWORKING
 #==============================================================
@@ -128,7 +127,7 @@
 
   #================================================================================
 
-  # TABLA DE RUTAS PRIVADA - APLICACIONES (Para EC2/ASG)
+  # TABLA DE RUTAS PRIVADA - APLICACIONES
   resource "aws_route_table" "private" {
     count  = length(local.azs)
     vpc_id = aws_vpc.main_vpc.id

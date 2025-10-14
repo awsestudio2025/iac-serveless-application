@@ -1,0 +1,121 @@
+name: Terraform CI/CD
+
+# ----------------------------------------------------------------------
+# 1. Definición de Triggers
+# ----------------------------------------------------------------------
+on:
+  push:
+    branches:
+      - main # Ejecuta 'plan' y 'apply' al hacer push a main
+  pull_request:
+    branches:
+      - main # Ejecuta solo 'plan' al abrir/actualizar un PR a main
+
+# ----------------------------------------------------------------------
+# 2. Variables de Entorno Globales
+# ----------------------------------------------------------------------
+env:
+  TF_WORKING_DIR: . # Directorio raiz donde estan main.tf y variables.tf
+  AWS_REGION: us-east-1 # La region donde se desplegara todo (debe coincidir con tu backend.tf)
+
+# ----------------------------------------------------------------------
+# 3. Trabajos (Jobs)
+# ----------------------------------------------------------------------
+jobs:
+  # Job para planificar los cambios (se ejecuta en todos los eventos)
+  terraform-plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    
+    # Define la condicion: se ejecuta en push a main o en cualquier Pull Request
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 3.1. Configurar Credenciales de AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 3.2. Terraform Init
+      # Inicializa el backend S3 y descarga los proveedores
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # 3.3. Terraform Validate
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+      
+      # 3.4. Terraform Plan
+      # Ejecuta el plan y lo guarda en un archivo de salida para su revisión.
+      # Nota: Se pasa la contraseña sensible de RDS desde los secretos de GitHub.
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan \
+            -var "rds_password=${{ secrets.RDS_MASTER_PASSWORD }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        
+      # 3.5. Comentar el Plan en el Pull Request
+      # Usa un action para publicar los resultados del plan en el PR.
+      - name: Terraform Plan Status
+        uses: hashicorp/terraform-github-actions/plan@v2
+        if: github.event_name == 'pull_request' # Solo en PRs
+        with:
+          plan_file: tfplan
+
+  # Job para aplicar los cambios (solo se ejecuta tras el merge a main)
+  terraform-apply:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    
+    # 🚨 CRÍTICO: SOLO ejecutar 'apply' en push a la rama 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    # Asegura que la planificación (plan) se ejecutó primero y fue exitosa
+    needs: terraform-plan 
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 4.1. Configurar Credenciales de AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      # 4.2. Terraform Init
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # 4.3. Terraform Apply
+      # Aplica los cambios, pasando la contraseña sensible de RDS.
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            -var "rds_password=${{ secrets.RDS_MASTER_PASSWORD }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}

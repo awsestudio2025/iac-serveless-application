@@ -3,7 +3,6 @@
 #==============================================================
 
     resource "aws_s3_bucket" "app" {
-        # Nombre unico: debe incluir el ID de la cuenta si es necesario, pero usamos el project_name y environment para la unicidad.
         bucket = "${var.project_name}-${var.environment}-app"
 
         tags            = {
@@ -12,7 +11,7 @@
         }
     }
 
-    # 2. Configuración de Bloqueo de Acceso Público (Mejor Práctica de Seguridad)
+    # Configuración de Bloqueo de Acceso Público
     resource "aws_s3_bucket_public_access_block" "block_public" {
         bucket = aws_s3_bucket.app.id
         block_public_acls       = true
@@ -21,7 +20,7 @@
         restrict_public_buckets = true
     }
 
-    # 3. Encriptación del Bucket usando KMS (SSE-KMS)
+    # Encriptación del Bucket usando KMS
     resource "aws_s3_bucket_server_side_encryption_configuration" "sse_config" {
         bucket = aws_s3_bucket.app.id
 
@@ -33,7 +32,7 @@
         }
     }
 
-    # 4. Versionado (Opcional, pero recomendado)
+    # Versionado
     resource "aws_s3_bucket_versioning" "versioning" {
         bucket = aws_s3_bucket.app.id
             versioning_configuration {

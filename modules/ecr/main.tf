@@ -1,5 +1,5 @@
 #==============================================================
-# MÓDULO ECR: Definición del Repositorio de Contenedores
+# MÓDULO ECR
 #==============================================================
 
     # Repositorio ECR

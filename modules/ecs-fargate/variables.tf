@@ -1,5 +1,5 @@
 #==============================================================
-# MÓDULO ECS FARGATE: Variables de Entrada
+# VARIABLES ECS FARGATE
 #==============================================================
 
     variable "project_name" {

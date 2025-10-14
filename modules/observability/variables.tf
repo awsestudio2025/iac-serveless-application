@@ -1,5 +1,5 @@
 #==============================================================
-# MÓDULO OBSERVABILITY: Variables de Entrada
+# VARIABLES OBSERVABILITY
 #==============================================================
 
   variable "project_name" {
@@ -13,7 +13,7 @@
   }
 
   variable "rds_db_instance_id" {
-    description = "El ID de la instancia RDS a monitorear."
+    description = "El ID de la instancia RDS"
     type        = string
   }
 
@@ -23,6 +23,6 @@
   }
 
   variable "email_for_notifications" {
-    description = "Dirección de correo electrónico para recibir notificaciones de alarmas críticas"
+    description = "Dirección de correo electrónico para recibir notificaciones"
     type        = string
   }

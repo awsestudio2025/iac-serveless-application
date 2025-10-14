@@ -1,11 +1,11 @@
 #==============================================================
-# MÓDULO DATABASE: RDS PostgreSQL Monolítico (HA con Multi-AZ y Secrets Manager)
+# MÓDULO DATABASE: RDS PostgreSQL
 #==============================================================
 
 # ----------------------------------------------------
 # Generación y Almacenamiento de Credenciales Seguras
 # ----------------------------------------------------
-# Generador de contraseña segura aleatoria (evita exponer la contraseña en el state file)
+
   resource "random_password" "db_master_password" {
     length           = 16
     special          = true
@@ -27,8 +27,8 @@
     }
   }
 
-  # Versión del secreto (contenido del secreto: JSON con usuario/password/host/port)
-  # Depende de aws_db_instance para obtener el host/port.
+  # Versión del secreto
+  
   resource "aws_secretsmanager_secret_version" "rds_credentials_version" {
     secret_id     = aws_secretsmanager_secret.rds_credentials.id
     secret_string = jsonencode({
@@ -38,7 +38,6 @@
       port     = aws_db_instance.app_db_instance.port
       dbname   = "DBpostgres"
     })
-    # Necesita una dependencia explícita para que el host esté disponible
     depends_on = [aws_db_instance.app_db_instance]
   }
 

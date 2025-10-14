@@ -25,17 +25,16 @@
         }
     }
 
-    # 2. POLÍTICA DE EJECUCIÓN ESTÁNDAR
+    # POLÍTICA DE EJECUCIÓN ESTÁNDAR
     # ---------------------------------
-    # Política administrada por AWS para ECR, CloudWatch Logs, etc.
     resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
         role       = aws_iam_role.ecs_execution_role.name
         policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
     }
 
-    # 3. POLÍTICA ADICIONAL: ACCESO A SECRETS MANAGER Y KMS
+    # POLÍTICA ADICIONAL: ACCESO A SECRETS MANAGER Y KMS
     # -----------------------------------------------------
-    # Documento de política para obtener credenciales de DB cifradas.
+    # política para obtener credenciales de DB cifradas.
     data "aws_iam_policy_document" "secrets_access_policy" {
         statement {
             sid       = "SecretsManagerAccess"
@@ -50,7 +49,7 @@
         }
     }
 
-    # 4. ADJUNCIÓN DE LA POLÍTICA DE SECRETS MANAGER AL ROL DE EJECUCIÓN
+    # ADJUNCIÓN DE LA POLÍTICA DE SECRETS MANAGER AL ROL DE EJECUCIÓN
     resource "aws_iam_role_policy" "secrets_access_policy" {
         name   = "${var.project_name}-${var.environment}-SecretsAccessPolicy"
         role   = aws_iam_role.ecs_execution_role.id
@@ -61,9 +60,6 @@
     # ----------------------------------------------------------------------------------
 # ROLES DE TAREA (TASK ROLE) - USADO POR LA APLICACIÓN MISMA
     # ----------------------------------------------------------------------------------
-
-    # ROL DE TAREA (TASK ROLE)
-    # ----------------------------
     # Rol que la aplicacion usa para interactuar con otros servicios de AWS (S3, etc.)
     resource "aws_iam_role" "ecs_task_role" {
         name              = "${var.project_name}-${var.environment}-ecs-task-role"
@@ -123,8 +119,6 @@
     # ----------------------------------------------------------------------------------
 # ROL PARA MONITOREO MEJORADO DE RDS (RDS Enhanced Monitoring)
     # ----------------------------------------------------------------------------------
-
-    # ROL DE MONITOREO RDS
     # Usado por el servicio RDS para enviar métricas detalladas a CloudWatch Logs.
     resource "aws_iam_role" "rds_monitoring_role" {
         name               = "${var.project_name}-${var.environment}-rds-monitoring-role"
@@ -147,8 +141,8 @@
         }
     }
 
-    # 8. ADJUNCIÓN DE LA POLÍTICA ADMINISTRADA DE MONITOREO
-    # Esta política administrada por AWS contiene todos los permisos necesarios para CloudWatch Logs.
+    # ADJUNCIÓN DE LA POLÍTICA ADMINISTRADA DE MONITOREO
+    # Esta política AWS permisos necesarios para CloudWatch Logs.
     resource "aws_iam_role_policy_attachment" "rds_monitoring_policy_attachment" {
         role       = aws_iam_role.rds_monitoring_role.name
         policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"

@@ -3,7 +3,7 @@
 #==============================================================
 
   variable "environment" {
-    description = "ambiente donde se ejecuta el despliegue (DEV, PDN,)"
+    description = "ambiente donde se ejecuta el despliegue"
     type = string
   }
 
@@ -38,12 +38,12 @@
   }
 
   variable "deletion_protection" {
-    description = "ID Subnet privada a Data RDS"
+    description = "proteccion terminacion accidental"
     type = bool
   }
 
   variable "backup_retention_period" {
-    description = "ID Subnet privada a Data RDS"
+    description = "periodo de retencion del backup"
     type = number
   }
 
@@ -53,7 +53,7 @@
   }
 
   variable "kms_key_arn" {
-    description = "Kms cifrado para la base de datos"
+    description = "arn de la Kms"
     type = string
   }
   variable "kms_key_id" {
@@ -62,7 +62,7 @@
    }
 
   variable "performance_insights_retention_period" {
-    description = "ID Subnet privada a Data RDS"
+    description = "periodo retencion del performance"
     type = number
   }
 
@@ -72,11 +72,11 @@
   }
 
   variable "subnet_private_ids" {
-    description = "ID Subnet privada a Data RDS"
+    description = "IDs Subnet privadas"
     type = list(string)
   }
 
   variable "rds_monitoring_role_arn" {
-    description = "arn del rol del monitoreo"
+    description = "Rol para el monitoreo"
     type = string
   }

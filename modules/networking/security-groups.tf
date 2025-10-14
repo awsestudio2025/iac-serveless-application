@@ -2,7 +2,7 @@
 # 1. GRUPOS DE SEGURIDAD (SECURITY GROUPS - SGs)
 # ==============================================================================
 
-# 1. SG para el ALB (Entrada web)
+# SG para el ALB (Entrada web)
 # Permite tráfico HTTP/HTTPS desde CUALQUIER LUGAR (Internet)
 
 resource "aws_security_group" "alb_sg" {
@@ -37,7 +37,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 # ==============================================================================
-# 2. SG para las Instancias (Capa de Aplicación)
+# SG para las Instancias (Capa de Aplicación)
 # Solo permite tráfico desde el ALB y tráfico saliente al exterior (vía NAT)
 
 resource "aws_security_group" "app_sg" {
@@ -69,7 +69,7 @@ resource "aws_security_group" "app_sg" {
 }
 
 # ==============================================================================
-# 1.3. SG para RDS (Capa de Datos)
+# SG para RDS (Capa de Datos)
 # Solo permite tráfico de la Capa de Aplicación.
 
 resource "aws_security_group" "rds_sg" {
