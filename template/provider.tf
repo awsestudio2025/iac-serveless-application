@@ -10,7 +10,7 @@ terraform {
 
 # Define la región de AWS a usar.
 provider "aws" {
-  region = var.aws_region
+  region = "us-east-1"
 
   default_tags {
     tags = var.tags
