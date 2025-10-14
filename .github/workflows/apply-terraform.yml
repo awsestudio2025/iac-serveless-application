@@ -1,4 +1,4 @@
-name: Terraform DESTROY (Activación Manual)
+name: Terraform APPLY (Activación Manual)
 
 # ----------------------------------------------------------------------
 # 1. Definición de Trigger (Solo Manual)
