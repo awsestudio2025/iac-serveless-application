@@ -17,7 +17,7 @@
 
   # Recurso de Secrets Manager para almacenar las credenciales de la DB
   resource "aws_secretsmanager_secret" "rds_credentials" {
-    name        = "${var.project_name}/${var.environment}/rds-master-credential"
+    name        = "${var.project_name}/${var.environment}/rds-master-credential2"
     description = "Credenciales del usuario maestro de la base de datos RDS para ${var.environment}"
   
     kms_key_id  = var.kms_key_id 
