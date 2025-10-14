@@ -21,7 +21,7 @@ permissions:
   # <--- LA LÍNEA 'secrets: inherit' HA SIDO ELIMINADA DE AQUÍ
   
 env:
-  TF_WORKING_DIR: /template # Directorio donde se encuentran los archivos .tf
+  TF_WORKING_DIR: template/ # Directorio donde se encuentran los archivos .tf
   AWS_REGION: us-east-1 # La región de AWS a la que quieres desplegar
 
 jobs:
