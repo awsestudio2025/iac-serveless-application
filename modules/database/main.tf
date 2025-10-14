@@ -9,7 +9,7 @@
   resource "random_password" "db_master_password" {
     length           = 16
     special          = true
-    override_special = "!@#$%^&*"
+    override_special = "!#$%^&*"
     upper            = true
     lower            = true
     numeric          = true
