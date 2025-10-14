@@ -60,11 +60,11 @@
     sensitive   = true
   }
 
-  variable "password" {
-    description = "pass conexion base de datos "
-    type        = string
-    sensitive   = true
-  }
+  # variable "password" {
+  #   description = "pass conexion base de datos "
+  #   type        = string
+  #   sensitive   = true
+  # }
 
   variable "deletion_protection" {
     description = "proteccion terminacion BD "
