@@ -18,9 +18,8 @@ permissions:
   # ¡CRÍTICO! Esto habilita la autenticación OIDC. Permite que GitHub solicite una identidad a AWS.
   id-token: write 
   contents: read
-  # Permite que el job lea los secretos (AWS_IAM_ROLE_ARN y RDS_MASTER_PASSWORD)
-  secrets: inherit 
-
+  # <--- LA LÍNEA 'secrets: inherit' HA SIDO ELIMINADA DE AQUÍ
+  
 env:
   TF_WORKING_DIR: . # Directorio donde se encuentran los archivos .tf
   AWS_REGION: us-east-1 # La región de AWS a la que quieres desplegar
@@ -96,4 +95,3 @@ jobs:
         run: |
           terraform apply -auto-approve -input=false -var "rds_master_password=${{ secrets.RDS_MASTER_PASSWORD }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
-#in de archivo
