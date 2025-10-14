@@ -119,3 +119,9 @@
     description = "Variable fargate puierto"
     type        = string
   }
+
+  variable "rds_master_password" {
+    description = "The master password for the RDS instance."
+    type        = string
+    sensitive   = true # Esto es importante para que Terraform no la imprima.
+  }
