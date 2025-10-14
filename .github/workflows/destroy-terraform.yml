@@ -1,0 +1,47 @@
+name: Terraform DESTROY (Activación Manual)
+
+# ----------------------------------------------------------------------
+# 1. Definición de Trigger (Solo Manual)
+# ----------------------------------------------------------------------
+on:
+  workflow_dispatch:
+
+# ----------------------------------------------------------------------
+# 2. Permisos y Variables Globales
+# ----------------------------------------------------------------------
+permissions:
+  id-token: write 
+  contents: read
+  
+env:
+  TF_WORKING_DIR: template/ 
+
+jobs:
+  terraform-destroy:
+    name: "Eliminar Infraestructura de Producción"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }} 
+          aws-region: us-east-1 
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Destroy
+        run: |
+          # ¡Atención! Esto elimina todos los recursos definidos en tu código.
+          terraform destroy -auto-approve \
+            -var-file="prod.tfvars" \
+            -var "rds_master_password=${{ secrets.RDS_MASTER_PASSWORD }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
