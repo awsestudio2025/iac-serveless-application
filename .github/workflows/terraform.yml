@@ -20,7 +20,7 @@ permissions:
   contents: read
   
 env:
-  TF_WORKING_DIR: template/ # <--- AJUSTA ESTA RUTA si tus archivos .tf no están en 'infra/'
+  TF_WORKING_DIR: iac-serveless-application/template/ # <--- AJUSTA ESTA RUTA si tus archivos .tf no están en 'infra/'
   AWS_REGION: us-east-1 # La región de AWS a la que quieres desplegar
 
 jobs:
